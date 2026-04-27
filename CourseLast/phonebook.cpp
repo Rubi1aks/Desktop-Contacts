@@ -1,6 +1,5 @@
 // PhoneBook.cpp
 #include "PhoneBook.h"
-#include "databasemanager.h"
 #include <QFile>
 #include <QTextStream>
 #include <QStringList>
@@ -121,59 +120,54 @@ bool ContactValidator::isValidDate(const std::string& date) {
 void PhoneBook::addContact(Contact contact, bool isNeedValidation) {
     trimFields(contact);
 
-    // Проверка валидации контакта
     if (isNeedValidation && !ContactValidator::chekFullContact(contact)) return;
 
-    // Если номера телефонов отсутствуют, добавляем заглушку
     if (contact.phoneNumbers.empty()) {
         contact.phoneNumbers.push_back("NoPhone");
     }
 
-    if (useDatabase) {
-        // Работа с базой данных
-        DatabaseManager dbManager;
-        dbManager.insertContact(contact);
-    } else {
-        // Работа с файлом
-        QFile file(QString::fromStdString(filename));
+    QFile file(QString::fromStdString(filename));
 
-        // Открываем файл для записи в конец
-        if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
-            qWarning("Не удалось открыть файл для записи");
-            return;
-        }
-
-        QTextStream out(&file);
-        out.setEncoding(QStringConverter::Encoding::Utf8);
-
-        // Записываем контакт
-        out << QString::fromStdString(contact.firstName) << ","
-            << QString::fromStdString(contact.lastName) << ","
-            << QString::fromStdString(contact.middleName) << ","
-            << QString::fromStdString(contact.address) << ","
-            << QString::fromStdString(contact.birthDate) << ","
-            << QString::fromStdString(contact.email) << ",";
-
-        // Записываем номера телефонов, разделяя их точкой с запятой
-        for (size_t i = 0; i < contact.phoneNumbers.size(); ++i) {
-            out << QString::fromStdString(contact.phoneNumbers[i]);
-            if (i != contact.phoneNumbers.size() - 1) {
-                out << ";";
-            }
-        }
-        out << "\n";
-
-        file.close();
+    // Открываем файл для записи в конец
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
+        qWarning("Не удалось открыть файл для записи");
+        return;
     }
+
+    QTextStream out(&file);
+    out.setEncoding(QStringConverter::Encoding::Utf8);
+
+    out << QString::fromStdString(contact.firstName) << ","
+        << QString::fromStdString(contact.lastName) << ","
+        << QString::fromStdString(contact.middleName) << ","
+        << QString::fromStdString(contact.address) << ","
+        << QString::fromStdString(contact.birthDate) << ","
+        << QString::fromStdString(contact.email) << ",";
+
+    // Записываем номера телефонов, разделяя их точкой с запятой
+    for (size_t i = 0; i < contact.phoneNumbers.size(); ++i) {
+        out << QString::fromStdString(contact.phoneNumbers[i]);
+        if (i != contact.phoneNumbers.size() - 1) {
+            out << ";";
+        }
+    }
+    out << "\n";
+
+    file.close();
+
+    /*std::ofstream outFile(filename, std::ios::app);
+    outFile << contact.firstName << "," << contact.lastName << "," << contact.middleName << ","
+            << contact.address << "," << contact.birthDate << "," << contact.email << ",";
+    for (size_t i = 0; i < contact.phoneNumbers.size(); ++i) {
+        outFile << contact.phoneNumbers[i];
+        if (i != contact.phoneNumbers.size() - 1) {
+            outFile << ";";
+        }
+    }
+    outFile << std::endl;*/
 }
 
 void PhoneBook::saveAllContacts(const std::vector<Contact>& contacts) const {
-    if (useDatabase) {
-        DatabaseManager dbManager;
-        dbManager.replaceAllContacts(contacts);
-    } else {
-
-
     QFile file(QString::fromStdString(filename));
 
     // Открываем файл для записи
@@ -206,7 +200,19 @@ void PhoneBook::saveAllContacts(const std::vector<Contact>& contacts) const {
 
     // Закрываем файл
     file.close();
-    }
+    /*std::ofstream outFile(filename);
+
+    for (const auto& contact : contacts) {
+        outFile << contact.firstName << "," << contact.lastName << "," << contact.middleName << ","
+                << contact.address << "," << contact.birthDate << "," << contact.email << ",";
+        for (size_t i = 0; i < contact.phoneNumbers.size(); ++i) {
+            outFile << contact.phoneNumbers[i];
+            if (i != contact.phoneNumbers.size() - 1) {
+                outFile << ";";
+            }
+        }
+        outFile << std::endl;
+    }*/
 }
 
 void PhoneBook::deleteContact(size_t index) {
@@ -214,6 +220,51 @@ void PhoneBook::deleteContact(size_t index) {
     if (index < contacts.size()) {
         contacts.erase(contacts.begin() + index);
         saveAllContacts(contacts);
+    }
+}
+
+void PhoneBook::searchContacts(const std::vector<std::string>& fields, const std::vector<std::string>& values) {
+    std::vector<Contact> contacts = loadContacts();
+    int counter = 1;
+    const int columnWidth = 18;
+
+    for (const auto& contact : contacts) {
+        bool match = true;
+
+        for (size_t i = 0; i < fields.size(); i++) {
+            if (fields[i] == "firstName" && contact.firstName.find(values[i]) == std::string::npos) {
+                match = false;
+                break;
+            }
+            if (fields[i] == "lastName" && contact.lastName.find(values[i]) == std::string::npos) {
+                match = false;
+                break;
+            }
+            if (fields[i] == "middleName" && contact.middleName.find(values[i]) == std::string::npos) {
+                match = false;
+                break;
+            }
+            if (fields[i] == "address" && contact.address.find(values[i]) == std::string::npos) {
+                match = false;
+                break;
+            }
+            if (fields[i] == "birthDate" && contact.birthDate.find(values[i]) == std::string::npos) {
+                match = false;
+                break;
+            }
+            if (fields[i] == "email" && contact.email.find(values[i]) == std::string::npos) {
+                match = false;
+                break;
+            }
+            if (fields[i] == "phone" && !checkPhoneMatch(contact.phoneNumbers, values[i])) {
+                match = false;
+                break;
+            }
+        }
+
+        if (match) {
+            //displayContact(contact, counter++);
+        }
     }
 }
 
@@ -227,11 +278,34 @@ bool PhoneBook::checkPhoneMatch(const std::vector<std::string>& phoneNumbers, co
 }
 
 std::vector<Contact> PhoneBook::loadContacts() const {
-    if (useDatabase) {
-       DatabaseManager dbManager;
-       return dbManager.loadContacts();
-    } else {
+   /* std::vector<Contact> contacts;
+    std::ifstream inFile(filename);
+    std::string line;
+    unsigned long long ID = 1;
 
+    while (std::getline(inFile, line)) {
+        Contact contact;
+        size_t pos = 0;
+        size_t field = 0;
+        while ((pos = line.find(",")) != std::string::npos) {
+            std::string token = line.substr(0, pos);
+            switch (field) {
+            case 0: contact.firstName = token; break;
+            case 1: contact.lastName = token; break;
+            case 2: contact.middleName = token; break;
+            case 3: contact.address = token; break;
+            case 4: contact.birthDate = token; break;
+            case 5: contact.email = token; break;
+            }
+            line.erase(0, pos + 1);
+            ++field;
+        }
+        contact.phoneNumbers = split(line, ";");
+        contact.ID = ID++;
+        contacts.push_back(contact);
+    }
+    return contacts;
+*/
     std::vector<Contact> contacts;
     QFile inFile(QString::fromStdString(filename));
 
@@ -267,7 +341,6 @@ std::vector<Contact> PhoneBook::loadContacts() const {
 
     inFile.close();
     return contacts;
-    }
 }
 
 void PhoneBook::trimFields(Contact& contact) const {

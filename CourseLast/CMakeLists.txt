@@ -26,7 +26,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         phonebook.h phonebook.cpp
         mainwindow.ui
         addcontactwindow.h addcontactwindow.cpp
-        databasemanager.h databasemanager.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET CourseLast APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -72,6 +71,3 @@ install(TARGETS CourseLast
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(CourseLast)
 endif()
-
-find_package(Qt6 REQUIRED COMPONENTS Sql)
-target_link_libraries(CourseLast PRIVATE Qt6::Sql)

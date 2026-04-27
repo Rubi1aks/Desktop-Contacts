@@ -28,7 +28,6 @@ struct Contact {
 
 class ContactValidator {
 public:
-
     static bool chekFullContact(const Contact& contact);
     static std::string trim(const std::string& str);
     static bool isValidName(const std::string& name);
@@ -41,16 +40,9 @@ public:
 class PhoneBook {
 private:
     const std::string filename = "contacts.txt";
-    bool checkPhoneMatch(const std::vector<std::string>& phoneNumbers, const std::string& phoneQuery) const;
-    bool useDatabase;
+    bool checkPhoneMatch(const std::vector<std::string>& phoneNumbers, const std::string& phoneQuery) const; 
 
 public:
-    PhoneBook() : useDatabase(false) {}
-
-    void setUseDatabase(bool useDb) {
-        useDatabase = useDb;
-    }
-
     void trimFields(Contact& contact) const;
     void saveAllContacts(const std::vector<Contact>& contacts) const;
     std::vector<std::string> split(const std::string& str, const std::string& delimiter) const;

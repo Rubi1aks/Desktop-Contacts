@@ -14,7 +14,6 @@
 #include <QSpacerItem>
 #include <QSortFilterProxyModel>
 #include <QRegularExpression>
-#include <QCheckBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -25,11 +24,15 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Создаем таблицу
     contactTable = new QTableView(this);
+
     resize(1000, 600);
 
     // Создаем модель данных
     model = new QStandardItemModel();
+
+    // Устанавливаем заголовки столбцов
     model->setHorizontalHeaderLabels({"Фамилия", "Имя", "Отчество", "Дата рождения", "Адрес", "Email", "Номера телефонов"});
+
 
     // Привязываем модель к QTableView
     contactTable->setModel(model);
@@ -37,20 +40,25 @@ MainWindow::MainWindow(QWidget *parent)
     QFont font("Arial");  // Можно выбрать другой шрифт, поддерживающий кириллицу
     font.setStyleHint(QFont::SansSerif);  // Выбор шрифта без засечек
     contactTable->setFont(font);
+    //contactTable->setStyleSheet("QTableView { font-family: 'Arial'; font-size: 12pt; }");
 
     // Разрешаем сортировку по столбцам
     contactTable->setSortingEnabled(true);
     contactTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+
 
     // Настроим вид заголовков для сортировки
     QHeaderView *header = contactTable->horizontalHeader();
     header->setSectionsClickable(true);
     header->setSortIndicatorShown(true);
 
+
+
     // Настроим растягивание столбцов
-    header->setSectionResizeMode(QHeaderView::Interactive);
-    header->setSectionResizeMode(QHeaderView::ResizeToContents);
-    header->setStretchLastSection(true);
+    // Настроим растягивание столбцов в зависимости от содержания
+    header->setSectionResizeMode(QHeaderView::Interactive);  // Столбцы можно вручную растягивать
+    header->setSectionResizeMode(QHeaderView::ResizeToContents);  // Столбцы растягиваются в зависимости от содержимого
+    header->setStretchLastSection(true);  // Растягиваем последний столбец
 
     // Создаем кнопки для добавления, редактирования, удаления контакта
     QPushButton *addButton = new QPushButton("Добавить контакт", this);
@@ -62,14 +70,16 @@ MainWindow::MainWindow(QWidget *parent)
     editButton->setFixedSize(150, 40);
     deleteButton->setFixedSize(150, 40);
 
-    // Устанавливаем стиль для кнопок
+    // Устанавливаем стиль для округления кнопок
     QString buttonStyle = "QPushButton {"
                           "border-radius: 20px;"
                           "background-color: #4CAF50;"
                           "color: white;"
                           "font-size: 14px;"
+                          "}"
+                          "QPushButton:hover {"
+                          "background-color: #45a049;"
                           "}";
-
     addButton->setStyleSheet(buttonStyle);
     editButton->setStyleSheet(buttonStyle);
     deleteButton->setStyleSheet(buttonStyle);
@@ -112,52 +122,6 @@ MainWindow::MainWindow(QWidget *parent)
     QWidget *centralWidget = new QWidget(this);
     centralWidget->setLayout(mainLayout);
     setCentralWidget(centralWidget);
-
-    QPushButton *storageModeButton = new QPushButton("Хранение: Файл", this);
-    storageModeButton->setFixedSize(150, 40);
-    storageModeButton->setStyleSheet("QPushButton {"
-                                     "border-radius: 20px;"
-                                     "background-color: #FFD700;"
-                                     "color: white;"
-                                     "font-size: 14px;"
-                                     "}"
-                                     "QPushButton:hover {"
-                                     "background-color: #FFCC00;"
-                                     "}");
-
-    // Добавляем кнопку в лэйаут справа
-    rightButtonLayout->addWidget(storageModeButton);
-
-    // Переключение режима
-    connect(storageModeButton, &QPushButton::clicked, this, [this, storageModeButton]() {
-        if (storageModeButton->text() == "Хранение: Файл") {
-            storageModeButton->setText("Хранение: БД");
-            storageModeButton->setStyleSheet("QPushButton {"
-                                             "border-radius: 20px;"
-                                             "background-color: #FF6347;"
-                                             "color: white;"
-                                             "font-size: 14px;"
-                                             "}"
-                                             "QPushButton:hover {"
-                                             "background-color: #FF4F3A;"
-                                             "}");
-            phoneBook.setUseDatabase(true);  // Переключаем на работу с базой данных
-            loadListFromBook();
-        } else {
-            storageModeButton->setText("Хранение: Файл");
-            storageModeButton->setStyleSheet("QPushButton {"
-                                             "border-radius: 20px;"
-                                             "background-color: #FFD700;"
-                                             "color: white;"
-                                             "font-size: 14px;"
-                                             "}"
-                                             "QPushButton:hover {"
-                                             "background-color: #FFCC00;"
-                                             "}");
-            phoneBook.setUseDatabase(false);  // Переключаем на работу с файлом
-            loadListFromBook();
-        }
-    });
 
     // Подключаем слоты для кнопок
     connect(addButton, &QPushButton::clicked, this, &MainWindow::addContact);
