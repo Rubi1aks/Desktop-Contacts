@@ -2,7 +2,6 @@
 
 [![C++](https://img.shields.io/badge/C++-17-blue.svg)](https://isocpp.org/)
 [![Qt](https://img.shields.io/badge/Qt-6%2F5-green.svg)](https://qt.io/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## 📱 О проекте
 
