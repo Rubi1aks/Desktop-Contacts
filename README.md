@@ -28,10 +28,4 @@
 
 ## 📦 Установка и запуск
 
-### Требования
 - CMake ≥ 3.5
-- Qt6 или Qt5 (Widgets)
-
-# Запуск
-./CourseLast    # Linux/macOS
-./CourseLast.exe # Windows (MinGW/MSVC)
